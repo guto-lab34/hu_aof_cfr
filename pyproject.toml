@@ -1,0 +1,24 @@
+[build-system]
+requires = ["scikit-build-core>=0.11", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "hu-aof-cfr"
+version = "0.1.0"
+description = "An educational full-tree vanilla CFR solver for heads-up All-in or Fold"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.7"]
+test = ["pytest>=8"]
+
+[tool.scikit-build]
+minimum-version = "0.11"
+wheel.packages = ["hu_aof_cfr"]
+sdist.include = ["hu_aof_cfr/data/hu_equity.bin", "results/.gitkeep"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

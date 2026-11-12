@@ -138,6 +138,8 @@ def test_best_response_and_metrics():
 def test_python_training_and_csv(tmp_path):
     solver = CFRSolver()
     assert solver.iterations == 0
+    initial = solver.evaluate()
+    assert solver.convergence() == [{"iteration": 0, **initial}]
     assert all(row["fold"] == 0.5 for row in solver.average_strategy())
     with pytest.raises(ValueError):
         solver.train(0)
@@ -164,8 +166,19 @@ def test_python_training_and_csv(tmp_path):
         assert float(row["fold"]) + float(row[active]) == 1
     with (out / "convergence.csv").open(newline="") as stream:
         rows = list(csv.DictReader(stream))
-    assert [int(row["iteration"]) for row in rows] == [2, 4, 6]
+    assert [int(row["iteration"]) for row in rows] == [0, 2, 4, 6]
+    assert float(rows[0]["nash_conv"]) == initial["nash_conv"]
     assert float(rows[-1]["nash_conv"]) == solver.evaluate()["nash_conv"]
     metadata = json.loads((out / "metadata.json").read_text())
     assert metadata["iterations"] == 6
     assert metadata["equity_table_version"] == "HUAOFEQ1"
+
+    first = solver.save_run(out)
+    solver.train(2, evaluate_every=2)
+    second = solver.save_run(out)
+    assert first != second
+    for directory, iterations in ((first, 6), (second, 8)):
+        assert directory.parent == out
+        assert (directory / "strategy.csv").is_file()
+        assert (directory / "convergence.csv").is_file()
+        assert json.loads((directory / "metadata.json").read_text())["iterations"] == iterations

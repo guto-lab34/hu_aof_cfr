@@ -3,6 +3,7 @@
 import csv
 import hashlib
 import json
+from datetime import datetime, timedelta, timezone
 from importlib.resources import files
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -132,6 +133,27 @@ class CFRSolver:
 
     def save_convergence(self, path):
         self._save_export(path, CONVERGENCE_FIELDS, self.convergence)
+
+    def save_run(self, output="results"):
+        """Save one snapshot in a new timestamped folder and return its path."""
+        parent = Path(output)
+        parent.mkdir(parents=True, exist_ok=True)
+        jst = timezone(timedelta(hours=9))
+        stamp = datetime.now(jst).strftime("run_%Y-%m-%d_%H%M%S_%f_JST")
+        directory = parent / stamp
+        suffix = 0
+        while True:
+            try:
+                directory.mkdir()
+                break
+            except FileExistsError:
+                suffix += 1
+                directory = parent / f"{stamp}_{suffix:04d}"
+        with self._lock:
+            _write_csv(directory / "strategy.csv", STRATEGY_FIELDS, self.average_strategy())
+            _write_csv(directory / "convergence.csv", CONVERGENCE_FIELDS, self.convergence())
+            self.save_metadata(directory / "metadata.json")
+        return directory
 
     def _save_export(self, path, fields, get_rows):
         path = Path(path)

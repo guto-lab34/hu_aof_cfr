@@ -29,11 +29,14 @@ metrics = solver.evaluate()
 print(metrics["nash_conv"], metrics["exploitability"])
 print(solver.evaluate(per_100=True)["exploitability"])
 
-solver.save_strategy("results/strategy.csv")
-solver.save_convergence("results/convergence.csv")
+print(solver.save_run("results"))
 ```
 
-`train` を再度呼ぶと同じインスタンスに反復を追加します。評価の記録は累積反復数が指定間隔の倍数になった時点です。最後の反復が倍数でない場合も `evaluate()` でその時点の平均戦略を評価できます。反復前の平均戦略は一様戦略です。
+`train` を再度呼ぶと同じインスタンスに反復を追加します。収束履歴の先頭には反復0（学習前の一様戦略）が入り、以降は累積反復数が指定間隔の倍数になった時点で記録します。最初の10反復を毎回記録するには `python examples/run.py --iterations 10 --evaluate-every 1` を使います。最後の反復が倍数でない場合も `evaluate()` でその時点の平均戦略を評価できます。
+
+`examples/run.py` と `save_run()` は保存するたびに `results/run_YYYY-MM-DD_HHMMSS_ffffff_JST/` を作成し、CSVとメタデータをまとめて保存します。`--output` で親フォルダーを変更できます。`examples/visualize.py` は引数なしなら `results/` の最新の実行結果を読み、同じフォルダーにグラフを保存します。別の実行を描くにはその `convergence.csv` のパスを渡します。
+
+グラフは横軸が反復0から始まる線形軸で、縦軸は底10の対数軸です。縦の目盛りは指数で表示します。たとえば −3 は元の指標の 0.001 に相当します。縦軸の下端は正のデータの最小値に合わせた10の累乗です。0以下の値はCSVに残し、グラフでは該当点を空けます。
 
 ## ゲームと計算
 

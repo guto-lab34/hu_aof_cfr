@@ -31,6 +31,7 @@ double regret_match(Actions cumulative_regret) {
 CFR::CFR(std::string_view table_bytes) : game_(table_bytes) {
     current_.sb_allin.fill(0.5);
     current_.bb_call.fill(0.5);
+    history_.push_back({0, evaluate()});
 }
 
 void CFR::train(std::uint64_t iterations, std::uint64_t evaluate_every) {
